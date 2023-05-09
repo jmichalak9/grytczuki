@@ -13,5 +13,11 @@ public interface IGame
     /// <remarks>
     /// Needed to check who lost.
     /// </remarks>
-    bool IsFirstPlayerMove { get; set; }
+    GameState GameState { get; }
+}
+
+public enum GameState
+{
+    Player1Move = 0,
+    Player2Move = 1,
 }
