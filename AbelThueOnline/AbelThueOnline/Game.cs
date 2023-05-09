@@ -10,15 +10,10 @@ namespace AbelThueOnline
         public int WordLength { get; private set; }
         public int Index { get; private set; }
 
-        private PlayerType player1;
-        private PlayerType player2;
-
         private Game() { Word = null!; }
 
-        public Game(PlayerType player1, PlayerType player2, int charsCount, int wordLength)
+        public Game(int charsCount, int wordLength)
         {
-            this.player1 = player1;
-            this.player2 = player2;
             CharsCount = charsCount;
             WordLength = wordLength;
 
@@ -31,13 +26,11 @@ namespace AbelThueOnline
         {
             return new()
             {
-                Word = Word.ToString(),
-                GameState = GameState,
                 CharsCount = CharsCount,
                 WordLength = WordLength,
+                GameState = GameState,
+                Word = Word.ToString(),
                 Index = Index,
-                player1 = player1,
-                player2 = player2,
             };
         }
 
@@ -88,7 +81,7 @@ namespace AbelThueOnline
         private static bool CheckIfWordCorrect(string word)
         {
             var n = word.Length;
-            for (var i = 2; i <= n/2; i++)
+            for (var i = 1; i <= n/2; i++)
             {
                 for (var j = 0; j <= n - 2 * i; j++)
                 {
@@ -96,7 +89,7 @@ namespace AbelThueOnline
                     var aGrouped = a.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).OrderBy(x => x.Key).ToList();
                     var b = word[(j + i)..(j + 2 * i)];
                     var bGrouped = b.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).OrderBy(x => x.Key).ToList();
-                    var repetitionExist = aGrouped.Any(a => bGrouped.Where(b => b.Key == a.Key).Select(b => b.Count).FirstOrDefault() == a.Count);
+                    var repetitionExist = aGrouped.All(a => bGrouped.Where(b => b.Key == a.Key).Select(b => b.Count).FirstOrDefault() == a.Count);
                     if (repetitionExist)
                     {
                         return false;

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Algorithms
+﻿namespace Algorithms
 {
     public class Node
     {
@@ -30,6 +24,7 @@ namespace Algorithms
             Parent = parent;
             Move = move;
             Rewards = new List<double>();
+            State = prevState;
         
             if (move.HasValue)
             {
@@ -150,7 +145,8 @@ namespace Algorithms
             while (actions.Count > 0)
             {
                 var selectedMove = actions[_rng.Next() % actions.Count];
-                currentState = node.State.MakeMove(selectedMove);
+                currentState = currentState.MakeMove(selectedMove);
+                actions = currentState.GetAvailableActions();
                 // currentState.MakeMove(selectedMove.Row, selectedMove.Col);
                 // endInfo = currentState.IsEnd();
             }

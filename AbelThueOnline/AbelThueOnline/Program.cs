@@ -9,13 +9,13 @@ public class Program
         var isNewGame = true;
         while (isNewGame)
         {
-            var game = CreateGame();
+            var gameInfo = CreateGame();
+            var game = gameInfo.Game;
             var availableActions = game.GetAvailableActions();
             while (true)
             {
                 var action = -1;
 
-                
                 while(!availableActions.Contains(action))
                 {
                     if (action != -1)
@@ -26,8 +26,8 @@ public class Program
 
                     action = game.GameState switch
                     {
-                        GameState.Player1Move => ReadPlayer1Move(game),
-                        GameState.Player2Move => ReadPlayer2Move(game),
+                        GameState.Player1Move => gameInfo.Player1Move(),
+                        GameState.Player2Move => gameInfo.Player2Move(),
                         _ => throw new InvalidOperationException(),
                     };
                 }
@@ -64,13 +64,47 @@ public class Program
         }
     }
 
-    private static Game CreateGame()
+    private static GameInfo CreateGame()
     {
         var player1 = ReadPlayerType("first");
         var player2 = ReadPlayerType("second");
         var charsCount = ReadCharsCount();
         var wordLength = ReadWordLength();
-        return new(player1, player2, charsCount, wordLength);
+        return new()
+        {
+            Game = new(charsCount, wordLength),
+            Player1 = player1,
+            Player2 = player2,
+        };
+    }
+
+    private class GameInfo
+    {
+        public Game Game { get; set; } = null!;
+        public PlayerType Player1 { get; set; }
+        private MCTS player1MCTS = new MCTS(MCTS.Strategy.UCBTuned, 10);
+        public PlayerType Player2 { get; set; }
+        private MCTS player2MCTS = new MCTS(MCTS.Strategy.UCBTuned, 10);
+
+        public int Player1Move()
+        {
+            return Player1 switch 
+            {
+                PlayerType.User => ReadPlayer1Move(Game),
+                PlayerType.Computer => player1MCTS.SelectMove(Game, GameState.Player1Move),
+                _ => throw new InvalidOperationException(),
+            };
+        }
+
+        public int Player2Move()
+        {
+            return Player2 switch 
+            {
+                PlayerType.User => ReadPlayer2Move(Game),
+                PlayerType.Computer => player2MCTS.SelectMove(Game, GameState.Player2Move),
+                _ => throw new InvalidOperationException(),
+            };
+        }
     }
 
     private static PlayerType ReadPlayerType(string playerName)
