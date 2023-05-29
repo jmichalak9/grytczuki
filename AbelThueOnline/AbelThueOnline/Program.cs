@@ -7,34 +7,18 @@ public class Program
     public static void Main()
     {
         var isNewGame = true;
+
         while (isNewGame)
         {
             var gameInfo = CreateGame();
             var game = gameInfo.Game;
-            var availableActions = game.GetAvailableActions();
+
             while (true)
             {
-                var action = -1;
-
-                while(!availableActions.Contains(action))
-                {
-                    if (action != -1)
-                    {
-                        var actions = string.Join(", ", availableActions.Select(a => (char)(a + 'a')).ToList());
-                        Console.WriteLine($@"Invalid letter, available: {actions}");
-                    }
-
-                    action = game.GameState switch
-                    {
-                        GameState.Player1Move => gameInfo.Player1Move(),
-                        GameState.Player2Move => gameInfo.Player2Move(),
-                        _ => throw new InvalidOperationException(),
-                    };
-                }
-
+                var action = gameInfo.SelectMove();
 
                 game.PlayerMove(action);
-                availableActions = game.GetAvailableActions();
+                var availableActions = game.GetAvailableActions();
 
                 if (!availableActions.Any())
                 {
@@ -66,42 +50,32 @@ public class Program
 
     private static GameInfo CreateGame()
     {
-        var player1 = ReadPlayerType("first");
-        var player2 = ReadPlayerType("second");
-        var charsCount = ReadCharsCount();
-        var wordLength = ReadWordLength();
-        return new()
-        {
-            Game = new(charsCount, wordLength),
-            Player1 = player1,
-            Player2 = player2,
-        };
+        var game = new Game(ReadCharsCount(), ReadWordLength());
+        var player1 = CreateAlgorithm(ReadPlayerType("first"), game);
+        var player2 = CreateAlgorithm(ReadPlayerType("second"), game);
+
+        return new(game, player1, player2);
     }
 
     private class GameInfo
     {
-        public Game Game { get; set; } = null!;
-        public PlayerType Player1 { get; set; }
-        private MCTS player1MCTS = new MCTS(MCTS.Strategy.UCBTuned, 10);
-        public PlayerType Player2 { get; set; }
-        private MCTS player2MCTS = new MCTS(MCTS.Strategy.UCBTuned, 10);
-
-        public int Player1Move()
+        public GameInfo(Game game, IAlgorithm player1, IAlgorithm player2)
         {
-            return Player1 switch 
-            {
-                PlayerType.User => ReadPlayer1Move(Game),
-                PlayerType.Computer => player1MCTS.SelectMove(Game, GameState.Player1Move),
-                _ => throw new InvalidOperationException(),
-            };
+            Game = game;
+            Player1 = player1;
+            Player2 = player2;
         }
 
-        public int Player2Move()
+        public Game Game { get; private init; }
+        public IAlgorithm Player1 { get; private init; }
+        public IAlgorithm Player2 { get; private init; }
+
+        public int SelectMove()
         {
-            return Player2 switch 
+            return Game.GameState switch
             {
-                PlayerType.User => ReadPlayer2Move(Game),
-                PlayerType.Computer => player2MCTS.SelectMove(Game, GameState.Player2Move),
+                GameState.Player1Move => Player1.SelectMove(Game, GameState.Player1Move),
+                GameState.Player2Move => Player2.SelectMove(Game, GameState.Player2Move),
                 _ => throw new InvalidOperationException(),
             };
         }
@@ -111,16 +85,43 @@ public class Program
     {
         var player = -1;
 
-        while (player != 0 && player != 1)
+        while (player != (int)PlayerType.User
+            && player != (int)PlayerType.Mcts
+            && player != (int)PlayerType.Random)
         {
-            Console.WriteLine($"Select {playerName} player type (0 - user, 1 - computer)");
+            Console.WriteLine($"Select {playerName} player type ({(int)PlayerType.User} - user, {(int)PlayerType.Mcts} - mcts, {(int)PlayerType.Random} - random)");
             int.TryParse(Console.ReadLine(), out player);
         }
 
-        return player switch
+        return (PlayerType)player;
+    }
+
+    private static IAlgorithm CreateAlgorithm(PlayerType playerType, Game game)
+    {
+        var strategy = -1;
+        var iterationCount = 0;
+        if (playerType == PlayerType.Mcts)
         {
-            0 => PlayerType.User,
-            1 => PlayerType.Computer,
+            while (strategy != (int)(MCTS.Strategy.UCB)
+                && strategy != (int)(MCTS.Strategy.UCBMixMax)
+                && strategy != (int)(MCTS.Strategy.UCBTuned))
+            {
+                Console.WriteLine($"Select MCTS strategy type ({(int)(MCTS.Strategy.UCB)} - UCB, {(int)(MCTS.Strategy.UCBMixMax)} - UCBMixMax, {(int)(MCTS.Strategy.UCBTuned)} - UCBTuned)");
+                int.TryParse(Console.ReadLine(), out strategy);
+            }
+
+            while (iterationCount <= 0)
+            {
+                Console.WriteLine($"Select iteration count (value greater than 0)");
+                int.TryParse(Console.ReadLine(), out iterationCount);
+            }
+        }
+
+        return playerType switch
+        {
+            PlayerType.User => new Player(game),
+            PlayerType.Mcts => new MCTS((MCTS.Strategy)strategy, iterationCount),
+            PlayerType.Random => new RandomAlgorithm(),
             _ => throw new InvalidOperationException(),
         };
     }
@@ -149,64 +150,5 @@ public class Program
         }
 
         return wordLength;
-    }
-
-    private static int ReadPlayer1Move(Game game)
-    {
-        var index = 0;
-        var key = ConsoleKey.NoName;
-
-        while (key != ConsoleKey.Enter)
-        {
-            PrintPlayer1Move(game, index);
-
-            key = Console.ReadKey().Key;
-            Console.Clear();
-
-            if (key == ConsoleKey.LeftArrow)
-            {
-                index = --index  < 0 ? 0 : index;
-            }
-
-            if (key == ConsoleKey.RightArrow)
-            {
-                index = ++index > game.Word.Length ? game.Word.Length : index;
-            }
-        }
-
-        return index;
-    }
-
-    private static void PrintPlayer1Move(Game game, int index)
-    {
-        Console.WriteLine(game.Word.Substring(0, index) + "|" + game.Word.Substring(index, game.Word.Length - index));
-    }
-
-    private static int ReadPlayer2Move(Game game)
-    {
-        var key = '_';
-
-        while (true)
-        {
-            PrintPlayer2Move(game, key);
-
-            var readKey = Console.ReadKey();
-            Console.Clear();
-
-            if (readKey.Key == ConsoleKey.Enter && key != '_')
-            {
-                return key - 'a';
-            }
-
-            if (readKey.KeyChar - 'a' >= 0 && readKey.KeyChar - 'a' < game.CharsCount)
-            {
-                key = readKey.KeyChar;
-            }
-        }
-    }
-
-    private static void PrintPlayer2Move(Game game, char letter)
-    {
-        Console.WriteLine(game.Word.Substring(0, game.Index) + letter + game.Word.Substring(game.Index, game.Word.Length - game.Index));
     }
 }

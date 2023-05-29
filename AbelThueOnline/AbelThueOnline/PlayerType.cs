@@ -3,6 +3,7 @@
     public enum PlayerType
     {
         User = 0,
-        Computer = 1,
+        Mcts = 1,
+        Random = 2,
     }
 }
