@@ -42,7 +42,7 @@ namespace AbelThueOnline
 
             while (key != ConsoleKey.Enter)
             {
-                PrintPlayer1Move(game, index);
+                Console.WriteLine(Player1MoveString(game, index));
 
                 key = Console.ReadKey().Key;
                 Console.Clear();
@@ -61,9 +61,9 @@ namespace AbelThueOnline
             return index;
         }
 
-        private static void PrintPlayer1Move(Game game, int index)
+        public static string Player1MoveString(Game game, int index)
         {
-            Console.WriteLine(game.Word.Substring(0, index) + "|" + game.Word.Substring(index, game.Word.Length - index));
+            return game.Word.Substring(0, index) + "|" + game.Word.Substring(index, game.Word.Length - index);
         }
 
         private int ReadPlayer2Move()
@@ -72,7 +72,7 @@ namespace AbelThueOnline
 
             while (true)
             {
-                PrintPlayer2Move(game, key);
+                Console.WriteLine(Player2MoveString(game, key));
 
                 var readKey = Console.ReadKey();
                 Console.Clear();
@@ -89,9 +89,14 @@ namespace AbelThueOnline
             }
         }
 
-        private static void PrintPlayer2Move(Game game, char letter)
+        public static string Player2MoveString(Game game, char letter)
         {
-            Console.WriteLine(game.Word.Substring(0, game.Index) + letter + game.Word.Substring(game.Index, game.Word.Length - game.Index));
+            return game.Word.Substring(0, game.Index) + letter + game.Word.Substring(game.Index, game.Word.Length - game.Index);
+        }
+
+        public override string ToString()
+        {
+            return "Player";
         }
     }
 }

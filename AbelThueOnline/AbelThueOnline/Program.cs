@@ -4,24 +4,54 @@ namespace AbelThueOnline;
 
 public class Program
 {
+    public static bool saveGameToTxt = true;
+
     public static void Main()
     {
         var isNewGame = true;
 
         while (isNewGame)
         {
+            var fileName = DateTime.Now.ToString("HH-mm-ss-fffffff") + ".txt";
+            using StreamWriter sw = File.AppendText(fileName);
+            sw.AutoFlush = true;
+
             var gameInfo = CreateGame();
             var game = gameInfo.Game;
+
+            if (saveGameToTxt)
+            {
+                sw.WriteLine($"CharsCount: {gameInfo.Game.CharsCount}");
+                sw.WriteLine($"WordLength: {gameInfo.Game.WordLength}");
+                sw.WriteLine($"Player1: {gameInfo.Player1.ToString()}");
+                sw.WriteLine($"Player2: {gameInfo.Player2.ToString()}\n");
+            }
 
             while (true)
             {
                 var action = gameInfo.SelectMove();
 
-                game.PlayerMove(action);
-                var availableActions = game.GetAvailableActions();
+                if (saveGameToTxt)
+                {
+                    sw.WriteLine(
+                        game.GameState == GameState.Player1Move
+                            ? Player.Player1MoveString(game, action)
+                            : Player.Player2MoveString(game, (char)('a' + action)));
+                }
 
+                game.PlayerMove(action);
+
+                var availableActions = game.GetAvailableActions();
                 if (!availableActions.Any())
                 {
+                    if (saveGameToTxt)
+                    {
+                        sw.WriteLine(
+                            game.GameState == GameState.Player1Move
+                                ? "\nPlayer2 won"
+                                : "\nPlayer1 won");
+                    }
+
                     if (game.GameState == GameState.Player1Move)
                     {
                         Console.WriteLine("Player2 won! Press enter to start again or escape to exit");

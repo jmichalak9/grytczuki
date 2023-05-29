@@ -15,5 +15,10 @@
 
             return actions[random.Next(actions.Count)];
         }
+
+        public override string ToString()
+        {
+            return "Random";
+        }
     }
 }
