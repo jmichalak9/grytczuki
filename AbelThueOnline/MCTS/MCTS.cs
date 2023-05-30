@@ -76,9 +76,6 @@ namespace Algorithms
         // Node should be a leaf in current tree
         private double Simulation(Node node)
         {
-            // var currentState = new Othello(node.State.Board, node.State.Player);
-
-            // var endInfo = currentState.IsEnd();
             var actions = node.State.GetAvailableActions();
             IGame currentState = node.State;
             while (actions.Count > 0)
@@ -86,22 +83,9 @@ namespace Algorithms
                 var selectedMove = actions[_rng.Next() % actions.Count];
                 currentState = currentState.MakeMove(selectedMove);
                 actions = currentState.GetAvailableActions();
-                // currentState.MakeMove(selectedMove.Row, selectedMove.Col);
-                // endInfo = currentState.IsEnd();
             }
 
             return currentState.GameState == _computer? 0 : 1;
-            // var result = endInfo.blackScore.CompareTo(endInfo.whiteScore);
-
-            // if (_computer == Pawns.Black)
-            // {
-            //     return result < 0 ? 0 : result == 0 ? 0.5 : 1;
-            // }
-            // else
-            // {
-            //     return result > 0 ? 0 : result == 0 ? 0.5 : 1;
-            // }
-
         }
 
         private void Backpropagate(Node node, double result)
