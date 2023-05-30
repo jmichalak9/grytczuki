@@ -37,6 +37,9 @@ public class Program
                         game.GameState == GameState.Player1Move
                             ? Player.Player1MoveString(game, action)
                             : Player.Player2MoveString(game, (char)('a' + action)));
+
+                    Console.Clear();
+                    Console.Write(sb.ToString());
                 }
 
                 game.PlayerMove(action);

@@ -43,12 +43,12 @@ namespace AbelThueOnline
 
             while (key != ConsoleKey.Enter)
             {
+                Console.Clear();
                 Console.Write(stringBuilder.ToString());
                 Console.WriteLine(UpperCaseRepetition(Player1MoveString(game, index)));
                 Console.WriteLine(errorLine);
 
                 key = Console.ReadKey().Key;
-                Console.Clear();
 
                 if (key == ConsoleKey.LeftArrow)
                 {
@@ -75,12 +75,12 @@ namespace AbelThueOnline
 
             while (true)
             {
+                Console.Clear();
                 Console.Write(stringBuilder.ToString());
                 Console.WriteLine(UpperCaseRepetition(Player2MoveString(game, key)));
                 Console.WriteLine(errorLine);
 
                 var readKey = Console.ReadKey();
-                Console.Clear();
 
                 if (readKey.Key == ConsoleKey.Enter && key != '_')
                 {
