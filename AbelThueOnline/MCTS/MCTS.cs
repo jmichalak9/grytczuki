@@ -122,7 +122,8 @@ namespace Algorithms
 
         public override string ToString()
         {
-            return $"MCTS - {_strategy} strategy, {_maxIterations} iterations";
+            var timeoutString = timeout is null ? "no" : $"{timeout.Value.Seconds} s";
+            return $"MCTS - {_strategy} strategy, {_maxIterations} iterations, {timeoutString} timeout";
         }
 
         public enum Strategy

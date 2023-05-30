@@ -1,14 +1,17 @@
-﻿using Algorithms;
+﻿using System.Text;
+using Algorithms;
 
 namespace AbelThueOnline
 {
     public class Player : IAlgorithm
     {
         private Game game;
+        private StringBuilder stringBuilder;
 
-        public Player(Game game)
+        public Player(Game game, StringBuilder stringBuilder)
         {
             this.game = game;
+            this.stringBuilder = stringBuilder;
         }
 
         public int SelectMove(IGame initState, GameState computer)
@@ -18,16 +21,14 @@ namespace AbelThueOnline
 
             while(!availableActions.Contains(action))
             {
-                if (action != -1)
-                {
-                    var actions = string.Join(", ", availableActions.Select(a => (char)(a + 'a')).ToList());
-                    Console.WriteLine($@"Invalid letter, available: {actions}");
-                }
+                var errorLine = action != -1
+                    ? $"\nInvalid letter, available: {string.Join(", ", availableActions.Select(a => (char)(a + 'a')).ToList())}"
+                    : null;
 
                 action = computer switch
                 {
-                    GameState.Player1Move => ReadPlayer1Move(),
-                    GameState.Player2Move => ReadPlayer2Move(),
+                    GameState.Player1Move => ReadPlayer1Move(errorLine),
+                    GameState.Player2Move => ReadPlayer2Move(errorLine),
                     _ => throw new InvalidOperationException(),
                 };
             }
@@ -35,14 +36,16 @@ namespace AbelThueOnline
             return action;
         }
 
-        private int ReadPlayer1Move()
+        private int ReadPlayer1Move(string? errorLine)
         {
             var index = 0;
             var key = ConsoleKey.NoName;
 
             while (key != ConsoleKey.Enter)
             {
-                Console.WriteLine(Player1MoveString(game, index));
+                Console.Write(stringBuilder.ToString());
+                Console.WriteLine(UpperCaseRepetition(Player1MoveString(game, index)));
+                Console.WriteLine(errorLine);
 
                 key = Console.ReadKey().Key;
                 Console.Clear();
@@ -66,13 +69,15 @@ namespace AbelThueOnline
             return game.Word.Substring(0, index) + "|" + game.Word.Substring(index, game.Word.Length - index);
         }
 
-        private int ReadPlayer2Move()
+        private int ReadPlayer2Move(string? errorLine)
         {
             var key = '_';
 
             while (true)
             {
-                Console.WriteLine(Player2MoveString(game, key));
+                Console.Write(stringBuilder.ToString());
+                Console.WriteLine(UpperCaseRepetition(Player2MoveString(game, key)));
+                Console.WriteLine(errorLine);
 
                 var readKey = Console.ReadKey();
                 Console.Clear();
@@ -97,6 +102,27 @@ namespace AbelThueOnline
         public override string ToString()
         {
             return "Player";
+        }
+
+        private static string UpperCaseRepetition(string word)
+        {
+            var n = word.Length;
+            for (var i = 1; i <= n/2; i++)
+            {
+                for (var j = 0; j <= n - 2 * i; j++)
+                {
+                    var a = word[j..(j + i)];
+                    var aGrouped = a.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).OrderBy(x => x.Key).ToList();
+                    var b = word[(j + i)..(j + 2 * i)];
+                    var bGrouped = b.GroupBy(x => x).Select(x => new { x.Key, Count = x.Count() }).OrderBy(x => x.Key).ToList();
+                    var repetitionExist = aGrouped.All(a => bGrouped.Where(b => b.Key == a.Key).Select(b => b.Count).FirstOrDefault() == a.Count);
+                    if (repetitionExist)
+                    {
+                        return word[..j] + a.ToUpper() + b.ToUpper() + word[(j + 2 * i)..];
+                    }
+                }
+            }
+            return word;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Algorithms;
+﻿using System.Text;
+using Algorithms;
 
 namespace AbelThueOnline;
 
@@ -8,24 +9,22 @@ public class Program
 
     public static void Main()
     {
-        // TODO select custom game vs experiments
         var isNewGame = true;
 
         while (isNewGame)
         {
             var fileName = DateTime.Now.ToString("HH-mm-ss-fffffff") + ".txt";
-            using StreamWriter sw = File.AppendText(fileName);
-            sw.AutoFlush = true;
+            var sb = new StringBuilder();
 
-            var gameInfo = CreateGame();
+            var gameInfo = CreateGame(sb);
             var game = gameInfo.Game;
 
             if (saveGameToTxt)
             {
-                sw.WriteLine($"CharsCount: {gameInfo.Game.CharsCount}");
-                sw.WriteLine($"WordLength: {gameInfo.Game.WordLength}");
-                sw.WriteLine($"Player1: {gameInfo.Player1.ToString()}");
-                sw.WriteLine($"Player2: {gameInfo.Player2.ToString()}\n");
+                sb.AppendLine($"CharsCount: {gameInfo.Game.CharsCount}");
+                sb.AppendLine($"WordLength: {gameInfo.Game.WordLength}");
+                sb.AppendLine($"Player1: {gameInfo.Player1.ToString()}");
+                sb.AppendLine($"Player2: {gameInfo.Player2.ToString()}\n");
             }
 
             while (true)
@@ -34,7 +33,7 @@ public class Program
 
                 if (saveGameToTxt)
                 {
-                    sw.WriteLine(
+                    sb.AppendLine(
                         game.GameState == GameState.Player1Move
                             ? Player.Player1MoveString(game, action)
                             : Player.Player2MoveString(game, (char)('a' + action)));
@@ -47,22 +46,16 @@ public class Program
                 {
                     if (saveGameToTxt)
                     {
-                        sw.WriteLine(
+                        sb.AppendLine(
                             game.GameState == GameState.Player1Move
                                 ? "\nPlayer2 won"
                                 : "\nPlayer1 won");
+
+                        Console.Clear();
+                        Console.Write(sb.ToString());
                     }
 
-                    if (game.GameState == GameState.Player1Move)
-                    {
-                        Console.WriteLine("Player2 won! Press enter to start again or escape to exit");
-                    }
-                    else
-                    {
-                        Console.WriteLine("Player1 won! Press enter to start again or escape to exit");
-                    }
-
-                    // TODO print all game
+                    Console.WriteLine("Press enter to start again or escape to exit");
 
                     var key = ConsoleKey.NoName;
                     while (key != ConsoleKey.Enter && key != ConsoleKey.Escape)
@@ -81,11 +74,15 @@ public class Program
         }
     }
 
-    private static GameInfo CreateGame()
+    private static GameInfo CreateGame(StringBuilder sb)
     {
+        Console.Clear();
+
         var game = new Game(ReadCharsCount(), ReadWordLength());
-        var player1 = CreateAlgorithm(ReadPlayerType("first"), game);
-        var player2 = CreateAlgorithm(ReadPlayerType("second"), game);
+        var player1 = CreateAlgorithm(ReadPlayerType("first"), game, sb);
+        var player2 = CreateAlgorithm(ReadPlayerType("second"), game, sb);
+
+        Console.Clear();
 
         return new(game, player1, player2);
     }
@@ -129,7 +126,7 @@ public class Program
         return (PlayerType)player;
     }
 
-    private static IAlgorithm CreateAlgorithm(PlayerType playerType, Game game)
+    private static IAlgorithm CreateAlgorithm(PlayerType playerType, Game game, StringBuilder sb)
     {
         var strategy = -1;
         var iterationCount = 0;
@@ -159,7 +156,7 @@ public class Program
 
         return playerType switch
         {
-            PlayerType.User => new Player(game),
+            PlayerType.User => new Player(game, sb),
             PlayerType.Mcts => new MCTS(
                 (MCTS.Strategy)strategy,
                 iterationCount,
