@@ -8,6 +8,7 @@ public class Program
 
     public static void Main()
     {
+        // TODO select custom game vs experiments
         var isNewGame = true;
 
         while (isNewGame)
@@ -60,6 +61,8 @@ public class Program
                     {
                         Console.WriteLine("Player1 won! Press enter to start again or escape to exit");
                     }
+
+                    // TODO print all game
 
                     var key = ConsoleKey.NoName;
                     while (key != ConsoleKey.Enter && key != ConsoleKey.Escape)
@@ -130,6 +133,7 @@ public class Program
     {
         var strategy = -1;
         var iterationCount = 0;
+        var timeout = -1;
         if (playerType == PlayerType.Mcts)
         {
             while (strategy != (int)(MCTS.Strategy.UCB)
@@ -145,12 +149,21 @@ public class Program
                 Console.WriteLine($"Select iteration count (value greater than 0)");
                 int.TryParse(Console.ReadLine(), out iterationCount);
             }
+
+            while (timeout < 0)
+            {
+                Console.WriteLine($"Select timeout in seconds (type 0 to disable timeout)");
+                int.TryParse(Console.ReadLine(), out timeout);
+            }
         }
 
         return playerType switch
         {
             PlayerType.User => new Player(game),
-            PlayerType.Mcts => new MCTS((MCTS.Strategy)strategy, iterationCount),
+            PlayerType.Mcts => new MCTS(
+                (MCTS.Strategy)strategy,
+                iterationCount,
+                timeout == 0 ? null : TimeSpan.FromSeconds(timeout)),
             PlayerType.Random => new RandomAlgorithm(),
             _ => throw new InvalidOperationException(),
         };

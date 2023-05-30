@@ -1,4 +1,6 @@
-﻿namespace Algorithms
+﻿using System.Diagnostics;
+
+namespace Algorithms
 {
     public class MCTS : IAlgorithm
     {
@@ -7,12 +9,14 @@
         private int _maxIterations;
         private GameState _computer;
         private Strategy _strategy;
+        private TimeSpan? timeout;
 
-        public MCTS(Strategy strategy, int iterations = 1000)
+        public MCTS(Strategy strategy, int iterations, TimeSpan? timeout)
         {
             _maxIterations = iterations;
             _rng = new Random();
             _strategy = strategy;
+            this.timeout = timeout;
         }
 
         // MonteCarloTreeSearch
@@ -21,6 +25,9 @@
             _computer = computer;
             _root = new Node(initState);
 
+            var stopWatch = new Stopwatch();
+            stopWatch.Restart();
+            stopWatch.Start();
             for (int i = 0; i < _maxIterations; i++)
             {
                 // Selection and expansion
@@ -31,6 +38,10 @@
 
                 // Backpropagate
                 Backpropagate(node, result);
+                if (timeout.HasValue && stopWatch.Elapsed > timeout.Value)
+                {
+                    break;
+                }
             }
 
             // Select best move
