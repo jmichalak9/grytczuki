@@ -1,3 +1,7 @@
+# Abelowy Thue Online
+Projekt 6c.
+Autorzy: Jakub Michalak, Piotr Kryczka, Adam Ryl
+
 # Środowisko
 Program został napisany w środowisku .NET 7.0. Aby utworzyć plik wykonywalny umożliwiający rozpoczęcie gry, należy wywołać skrypt _./make-exe.bat_.
 
