@@ -9,6 +9,12 @@ public class Program
 
     public static void Main()
     {
+        var t = new Test();
+        t.Main();
+    }
+
+    public static void CMD()
+    {
         var isNewGame = true;
 
         while (isNewGame)
@@ -90,7 +96,7 @@ public class Program
         return new(game, player1, player2);
     }
 
-    private class GameInfo
+    public class GameInfo
     {
         public GameInfo(Game game, IAlgorithm player1, IAlgorithm player2)
         {
@@ -129,7 +135,7 @@ public class Program
         return (PlayerType)player;
     }
 
-    private static IAlgorithm CreateAlgorithm(PlayerType playerType, Game game, StringBuilder sb)
+    public static IAlgorithm CreateAlgorithm(PlayerType playerType, Game game, StringBuilder sb)
     {
         var strategy = -1;
         var iterationCount = 0;
